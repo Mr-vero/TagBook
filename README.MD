@@ -2,7 +2,7 @@
 
 TagBook is a modern web application that uses AI to automatically generate titles, descriptions, tags, and SEO keywords for your images. Built with vanilla JavaScript and powered by Groq's AI model, it features a sleek iOS-inspired design with local caching capabilities.
 
-![TagBook Screenshot](screenshot.png)
+![TagBook Screenshot](preview.png)
 
 ## Features
 
