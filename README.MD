@@ -1,4 +1,8 @@
-# TagBook - AI Image Analyzer
+<div align="center">
+  <img src="icon.webp" alt="TagBook Icon" width="120" height="120" style="border-radius: 20%;">
+  <h1>TagBook</h1>
+  <p>AI-Powered Image Analysis and Tagging</p>
+</div>
 
 TagBook is a modern web application that uses AI to automatically generate titles, descriptions, tags, and SEO keywords for your images. Built with vanilla JavaScript and powered by Groq's AI model, it features a sleek iOS-inspired design with local caching capabilities.
 
@@ -25,8 +29,7 @@ TagBook is a modern web application that uses AI to automatically generate title
 
 ### Installation
 
-1. Clone the repository:
-```bash
+1. Clone the repository:```bash
 git clone 
 git clone https://github.com/Mr-vero/TagBook.git
 cd TagBook
