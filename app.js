@@ -54,34 +54,51 @@ async function processImages() {
             const results = JSON.parse(analysisContent);
 
             cardContent.innerHTML = `
-                <h3 class="card-title">${results.title}</h3>
-                <p class="description">${results.description}</p>
-                
-                <div class="tags-section">
-                    <div class="section-title">
-                        Tags
-                        <button class="copy-btn" onclick="copyToClipboard(this, 'tags')">
+                <div class="content-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Title</h3>
+                        <button class="copy-btn" onclick="copyToClipboard(this, 'title')">
                             <i class="fas fa-copy"></i> Copy
                         </button>
                     </div>
-                    <div class="tags-container">
+                    <div class="title-content">${results.title}</div>
+                </div>
+                
+                <div class="content-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Description</h3>
+                        <button class="copy-btn" onclick="copyToClipboard(this, 'description')">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <div class="description-content">${results.description}</div>
+                </div>
+                
+                <div class="content-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Tags</h3>
+                        <button class="copy-btn" onclick="copyToClipboard(this, 'tags')">
+                            <i class="fas fa-copy"></i> Copy All
+                        </button>
+                    </div>
+                    <div class="tag-cloud">
                         ${results.tags.map(tag => 
                             `<span class="tag" onclick="copyToClipboard(this)">${typeof tag === 'string' ? tag : tag.name}</span>`
-                        ).join(' ')}
+                        ).join('')}
                     </div>
                 </div>
 
-                <div class="seo-section">
-                    <div class="section-title">
-                        SEO Keywords
+                <div class="content-section">
+                    <div class="section-header">
+                        <h3 class="section-title">SEO Keywords</h3>
                         <button class="copy-btn" onclick="copyToClipboard(this, 'seo')">
-                            <i class="fas fa-copy"></i> Copy
+                            <i class="fas fa-copy"></i> Copy All
                         </button>
                     </div>
-                    <div class="seo-container">
+                    <div class="tag-cloud">
                         ${results.seo_keywords.map(keyword => 
                             `<span class="seo-keyword" onclick="copyToClipboard(this)">${keyword}</span>`
-                        ).join(' ')}
+                        ).join('')}
                     </div>
                 </div>
             `;
@@ -395,16 +412,25 @@ async function progressiveCompress(base64Data, maxSizeKB = 1000) {
 function copyToClipboard(element, type) {
     let textToCopy;
     
-    if (type === 'tags') {
-        textToCopy = Array.from(element.parentElement.nextElementSibling.getElementsByClassName('tag'))
-            .map(tag => tag.textContent)
-            .join(', ');
-    } else if (type === 'seo') {
-        textToCopy = Array.from(element.parentElement.nextElementSibling.getElementsByClassName('seo-keyword'))
-            .map(keyword => keyword.textContent)
-            .join(', ');
-    } else {
-        textToCopy = element.textContent;
+    switch(type) {
+        case 'title':
+            textToCopy = element.parentElement.parentElement.querySelector('.title-content').textContent;
+            break;
+        case 'description':
+            textToCopy = element.parentElement.parentElement.querySelector('.description-content').textContent;
+            break;
+        case 'tags':
+            textToCopy = Array.from(element.parentElement.nextElementSibling.getElementsByClassName('tag'))
+                .map(tag => tag.textContent)
+                .join(', ');
+            break;
+        case 'seo':
+            textToCopy = Array.from(element.parentElement.nextElementSibling.getElementsByClassName('seo-keyword'))
+                .map(keyword => keyword.textContent)
+                .join(', ');
+            break;
+        default:
+            textToCopy = element.textContent;
     }
 
     navigator.clipboard.writeText(textToCopy).then(() => {

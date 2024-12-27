@@ -1,88 +1,109 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AI Image Analyzer</title>
+    <title>TagBook - AI Image Analyzer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #007AFF;
+            --secondary-color: #5856D6;
+            --background-color: #F2F2F7;
+            --card-color: #FFFFFF;
+            --text-color: #1C1C1E;
+            --border-radius: 16px;
+            --spacing: 20px;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-font-smoothing: antialiased;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f5f5f5;
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Icons', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            padding: var(--spacing);
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 0 var(--spacing);
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 2rem;
+        .app-header {
+            text-align: left;
+            margin-bottom: calc(var(--spacing) * 2);
+            padding: var(--spacing) 0;
         }
 
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 1rem;
+        .app-title {
+            color: var(--text-color);
+            font-size: 34px;
+            margin-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .app-description {
+            color: #666;
+            font-size: 17px;
+            font-weight: 400;
         }
 
         .upload-section {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .file-input-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-
-        #imageInput {
-            display: none;
+            margin-bottom: var(--spacing);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--background-color);
+            padding: var(--spacing) 0;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         .upload-btn {
-            background: #3498db;
+            background: var(--primary-color);
             color: white;
             padding: 12px 24px;
             border-radius: 25px;
             cursor: pointer;
-            display: inline-block;
-            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            font-size: 17px;
+            box-shadow: 0 2px 8px rgba(0,122,255,0.2);
         }
 
         .upload-btn:hover {
-            background: #2980b9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,122,255,0.3);
         }
 
         .preview-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
+            gap: calc(var(--spacing) * 1.5);
         }
 
         .image-card {
-            background: white;
-            border-radius: 10px;
+            background: var(--card-color);
+            border-radius: var(--border-radius);
             overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
         }
 
         .image-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
         }
 
         .preview-image {
@@ -92,125 +113,160 @@
         }
 
         .card-content {
-            padding: 1.5rem;
+            padding: calc(var(--spacing) * 1.2);
         }
 
-        .card-title {
-            color: #2c3e50;
-            margin-bottom: 1rem;
-            font-size: 1.2rem;
+        .content-section {
+            margin-bottom: calc(var(--spacing) * 1.2);
+            position: relative;
         }
 
-        .description {
-            color: #666;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
+        .content-section:last-child {
+            margin-bottom: 0;
         }
 
-        .tags-section, .seo-section {
-            margin-top: 1rem;
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
         }
 
         .section-title {
             font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #2c3e50;
-        }
-
-        .tag, .seo-keyword {
-            display: inline-block;
-            padding: 4px 12px;
-            margin: 2px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .tag {
-            background-color: #e9ecef;
-            color: #495057;
-        }
-
-        .tag:hover {
-            background-color: #dee2e6;
-        }
-
-        .seo-keyword {
-            background-color: #f8f9fa;
-            color: #666;
-            border: 1px solid #dee2e6;
-        }
-
-        .seo-keyword:hover {
-            background-color: #e9ecef;
+            color: var(--text-color);
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .copy-btn {
-            background: #2ecc71;
-            color: white;
+            background: transparent;
             border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
+            color: var(--primary-color);
             cursor: pointer;
-            font-size: 0.8rem;
-            margin-top: 1rem;
-            transition: all 0.3s ease;
+            padding: 6px 12px;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            border-radius: 15px;
         }
 
         .copy-btn:hover {
-            background: #27ae60;
+            background: rgba(0,122,255,0.1);
+        }
+
+        .tag-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag, .seo-keyword {
+            background: var(--background-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .tag:hover, .seo-keyword:hover {
+            background: #E5E5EA;
+        }
+
+        .title-content, .description-content {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #3A3A3C;
+            margin-bottom: 12px;
         }
 
         .loading {
-            padding: 2rem;
+            padding: var(--spacing);
             text-align: center;
             color: #666;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .loading i {
+            font-size: 24px;
+            color: var(--primary-color);
         }
 
         .error {
-            color: #e74c3c;
-            padding: 1rem;
+            color: #FF3B30;
+            padding: var(--spacing);
             text-align: center;
-            background: #fdf0ed;
-            border-radius: 4px;
+            background: #FFF5F5;
+            border-radius: var(--border-radius);
             margin-top: 1rem;
+            font-weight: 500;
         }
 
         @media (max-width: 768px) {
+            :root {
+                --spacing: 16px;
+            }
+
             .preview-container {
                 grid-template-columns: 1fr;
             }
 
-            .upload-section {
-                padding: 1rem;
+            .app-title {
+                font-size: 28px;
+            }
+
+            .app-description {
+                font-size: 15px;
             }
 
             body {
-                padding: 10px;
+                padding: 12px;
             }
+        }
+
+        /* iOS-style animations */
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .image-card {
+            animation: slideUp 0.3s ease forwards;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>AI Image Analyzer</h1>
-            <p>Upload images to generate descriptions, tags, and SEO keywords</p>
+        <header class="app-header">
+            <h1 class="app-title">TagBook</h1>
+            <p class="app-description">AI-powered image analysis</p>
         </header>
 
         <div class="upload-section">
             <div class="file-input-wrapper">
                 <label for="imageInput" class="upload-btn">
-                    <i class="fas fa-upload"></i> Choose Images
+                    <i class="fas fa-plus"></i>
+                    Add Images
                 </label>
-                <input type="file" id="imageInput" multiple accept="image/*">
+                <input type="file" id="imageInput" multiple accept="image/*" style="display: none;">
             </div>
         </div>
 
         <div id="previewContainer" class="preview-container"></div>
     </div>
 
-    <script src="app.js" defer></script>
+    <script src="app.js"></script>
 </body>
 </html> 
