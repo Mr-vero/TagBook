@@ -8,11 +8,12 @@
         :root {
             --primary-color: #007AFF;
             --secondary-color: #5856D6;
-            --background-color: #F2F2F7;
+            --background-color: #F5F7FA;
             --card-color: #FFFFFF;
             --text-color: #1C1C1E;
-            --border-radius: 16px;
-            --spacing: 20px;
+            --border-radius: 20px;
+            --spacing: 24px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -26,7 +27,8 @@
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Icons', 'Helvetica Neue', Helvetica, Arial, sans-serif;
             line-height: 1.5;
             color: var(--text-color);
-            background-color: var(--background-color);
+            background: linear-gradient(135deg, #F5F7FA 0%, #E4E9F2 100%);
+            min-height: 100vh;
             padding: var(--spacing);
         }
 
@@ -40,20 +42,24 @@
             text-align: left;
             margin-bottom: calc(var(--spacing) * 2);
             padding: var(--spacing) 0;
+            position: relative;
         }
 
         .app-title {
-            color: var(--text-color);
-            font-size: 34px;
-            margin-bottom: 8px;
-            font-weight: 700;
+            background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 42px;
+            margin-bottom: 12px;
+            font-weight: 800;
             letter-spacing: -0.5px;
         }
 
         .app-description {
             color: #666;
-            font-size: 17px;
+            font-size: 18px;
             font-weight: 400;
+            max-width: 600px;
         }
 
         .upload-section {
@@ -61,55 +67,63 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            background: var(--background-color);
+            background: rgba(245, 247, 250, 0.85);
             padding: var(--spacing) 0;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .upload-btn {
-            background: var(--primary-color);
+            background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
             color: white;
-            padding: 12px 24px;
-            border-radius: 25px;
+            padding: 16px 32px;
+            border-radius: 30px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            transition: all 0.2s ease;
-            font-weight: 500;
+            gap: 10px;
+            transition: var(--transition);
+            font-weight: 600;
             font-size: 17px;
-            box-shadow: 0 2px 8px rgba(0,122,255,0.2);
+            box-shadow: 0 4px 20px rgba(0,122,255,0.25);
         }
 
         .upload-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,122,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,122,255,0.3);
         }
 
         .preview-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: calc(var(--spacing) * 1.5);
+            padding: var(--spacing) 0;
         }
 
         .image-card {
             background: var(--card-color);
             border-radius: var(--border-radius);
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            transition: var(--transition);
+            transform: translateY(0);
+            border: 1px solid rgba(0,0,0,0.05);
         }
 
         .image-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            transform: translateY(-6px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12);
         }
 
         .preview-image {
             width: 100%;
-            height: 200px;
+            height: 240px;
             object-fit: cover;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
         }
 
         .card-content {
@@ -117,8 +131,11 @@
         }
 
         .content-section {
-            margin-bottom: calc(var(--spacing) * 1.2);
+            margin-bottom: calc(var(--spacing));
             position: relative;
+            background: #F8FAFC;
+            padding: 16px;
+            border-radius: 12px;
         }
 
         .content-section:last-child {
@@ -136,8 +153,7 @@
             font-weight: 600;
             color: var(--text-color);
             font-size: 15px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .copy-btn {
@@ -146,9 +162,12 @@
             color: var(--primary-color);
             cursor: pointer;
             padding: 6px 12px;
-            font-size: 15px;
-            transition: all 0.2s ease;
+            font-size: 14px;
+            transition: var(--transition);
             border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .copy-btn:hover {
@@ -162,25 +181,27 @@
         }
 
         .tag, .seo-keyword {
-            background: var(--background-color);
-            padding: 6px 12px;
+            background: white;
+            padding: 8px 16px;
             border-radius: 20px;
             font-size: 14px;
             color: var(--text-color);
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: var(--transition);
             font-weight: 500;
+            border: 1px solid rgba(0,0,0,0.05);
         }
 
         .tag:hover, .seo-keyword:hover {
-            background: #E5E5EA;
+            background: var(--primary-color);
+            color: white;
+            border-color: transparent;
         }
 
         .title-content, .description-content {
             font-size: 15px;
             line-height: 1.6;
             color: #3A3A3C;
-            margin-bottom: 12px;
         }
 
         .loading {
@@ -196,6 +217,13 @@
         .loading i {
             font-size: 24px;
             color: var(--primary-color);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
         }
 
         .error {
@@ -218,11 +246,11 @@
             }
 
             .app-title {
-                font-size: 28px;
+                font-size: 32px;
             }
 
             .app-description {
-                font-size: 15px;
+                font-size: 16px;
             }
 
             body {
@@ -233,7 +261,7 @@
         /* iOS-style animations */
         @keyframes slideUp {
             from {
-                transform: translateY(20px);
+                transform: translateY(30px);
                 opacity: 0;
             }
             to {
@@ -243,7 +271,34 @@
         }
 
         .image-card {
-            animation: slideUp 0.3s ease forwards;
+            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .history-btn {
+            background: var(--secondary-color);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 30px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+            font-weight: 600;
+            font-size: 17px;
+            border: none;
+            box-shadow: 0 4px 20px rgba(88,86,214,0.25);
+        }
+
+        .history-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(88,86,214,0.3);
+        }
+
+        .timestamp {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
         }
     </style>
 </head>
@@ -251,7 +306,7 @@
     <div class="container">
         <header class="app-header">
             <h1 class="app-title">TagBook</h1>
-            <p class="app-description">AI-powered image analysis</p>
+            <p class="app-description">Transform your images into detailed descriptions, tags, and SEO keywords using AI</p>
         </header>
 
         <div class="upload-section">

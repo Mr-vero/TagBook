@@ -2,12 +2,62 @@
 const GROQ_API_KEY = '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';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
+// Add cache handling
+class ImageCache {
+    constructor() {
+        this.cache = this.loadFromLocalStorage();
+    }
+
+    loadFromLocalStorage() {
+        try {
+            const cached = localStorage.getItem('tagbook_cache');
+            return cached ? JSON.parse(cached) : {};
+        } catch (error) {
+            console.error('Error loading cache:', error);
+            return {};
+        }
+    }
+
+    saveToLocalStorage() {
+        try {
+            localStorage.setItem('tagbook_cache', JSON.stringify(this.cache));
+        } catch (error) {
+            console.error('Error saving cache:', error);
+        }
+    }
+
+    async getImageHash(imageData) {
+        const msgBuffer = new TextEncoder().encode(imageData);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async get(imageData) {
+        const hash = await this.getImageHash(imageData);
+        return this.cache[hash];
+    }
+
+    async set(imageData, results) {
+        const hash = await this.getImageHash(imageData);
+        this.cache[hash] = {
+            ...results,
+            timestamp: Date.now()
+        };
+        this.saveToLocalStorage();
+    }
+
+    getHistory() {
+        return Object.values(this.cache)
+            .sort((a, b) => b.timestamp - a.timestamp);
+    }
+}
+
+const imageCache = new ImageCache();
+
 async function processImages() {
     const imageInput = document.getElementById('imageInput');
     const previewContainer = document.getElementById('previewContainer');
-    
-    // Clear previous results
-    previewContainer.innerHTML = '';
     
     const files = Array.from(imageInput.files);
     
@@ -16,7 +66,12 @@ async function processImages() {
         return;
     }
 
-    console.log(`Processing ${files.length} images...`); // Debug log
+    // Only clear container if not showing history
+    if (!showingHistory) {
+        previewContainer.innerHTML = '';
+    }
+
+    console.log(`Processing ${files.length} images...`);
 
     for (const file of files) {
         const card = document.createElement('div');
@@ -50,58 +105,16 @@ async function processImages() {
                 quality: 0.8
             });
 
-            const analysisContent = await analyzeImageWithGroq(compressedBase64);
-            const results = JSON.parse(analysisContent);
+            // Check cache first
+            let results = await imageCache.get(compressedBase64);
+            
+            if (!results) {
+                const analysisContent = await analyzeImageWithGroq(compressedBase64);
+                results = JSON.parse(analysisContent);
+                await imageCache.set(compressedBase64, results);
+            }
 
-            cardContent.innerHTML = `
-                <div class="content-section">
-                    <div class="section-header">
-                        <h3 class="section-title">Title</h3>
-                        <button class="copy-btn" onclick="copyToClipboard(this, 'title')">
-                            <i class="fas fa-copy"></i> Copy
-                        </button>
-                    </div>
-                    <div class="title-content">${results.title}</div>
-                </div>
-                
-                <div class="content-section">
-                    <div class="section-header">
-                        <h3 class="section-title">Description</h3>
-                        <button class="copy-btn" onclick="copyToClipboard(this, 'description')">
-                            <i class="fas fa-copy"></i> Copy
-                        </button>
-                    </div>
-                    <div class="description-content">${results.description}</div>
-                </div>
-                
-                <div class="content-section">
-                    <div class="section-header">
-                        <h3 class="section-title">Tags</h3>
-                        <button class="copy-btn" onclick="copyToClipboard(this, 'tags')">
-                            <i class="fas fa-copy"></i> Copy All
-                        </button>
-                    </div>
-                    <div class="tag-cloud">
-                        ${results.tags.map(tag => 
-                            `<span class="tag" onclick="copyToClipboard(this)">${typeof tag === 'string' ? tag : tag.name}</span>`
-                        ).join('')}
-                    </div>
-                </div>
-
-                <div class="content-section">
-                    <div class="section-header">
-                        <h3 class="section-title">SEO Keywords</h3>
-                        <button class="copy-btn" onclick="copyToClipboard(this, 'seo')">
-                            <i class="fas fa-copy"></i> Copy All
-                        </button>
-                    </div>
-                    <div class="tag-cloud">
-                        ${results.seo_keywords.map(keyword => 
-                            `<span class="seo-keyword" onclick="copyToClipboard(this)">${keyword}</span>`
-                        ).join('')}
-                    </div>
-                </div>
-            `;
+            updateCardContent(cardContent, results);
         } catch (error) {
             cardContent.innerHTML = `
                 <div class="error">
@@ -115,6 +128,105 @@ async function processImages() {
         }
     }
 }
+
+function updateCardContent(cardContent, results) {
+    cardContent.innerHTML = `
+        <div class="content-section">
+            <div class="section-header">
+                <h3 class="section-title">Title</h3>
+                <button class="copy-btn" onclick="copyToClipboard(this, 'title')">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+            </div>
+            <div class="title-content">${results.title}</div>
+        </div>
+        
+        <div class="content-section">
+            <div class="section-header">
+                <h3 class="section-title">Description</h3>
+                <button class="copy-btn" onclick="copyToClipboard(this, 'description')">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+            </div>
+            <div class="description-content">${results.description}</div>
+        </div>
+        
+        <div class="content-section">
+            <div class="section-header">
+                <h3 class="section-title">Tags</h3>
+                <button class="copy-btn" onclick="copyToClipboard(this, 'tags')">
+                    <i class="fas fa-copy"></i> Copy All
+                </button>
+            </div>
+            <div class="tag-cloud">
+                ${results.tags.map(tag => 
+                    `<span class="tag" onclick="copyToClipboard(this)">${typeof tag === 'string' ? tag : tag.name}</span>`
+                ).join('')}
+            </div>
+        </div>
+
+        <div class="content-section">
+            <div class="section-header">
+                <h3 class="section-title">SEO Keywords</h3>
+                <button class="copy-btn" onclick="copyToClipboard(this, 'seo')">
+                    <i class="fas fa-copy"></i> Copy All
+                </button>
+            </div>
+            <div class="tag-cloud">
+                ${results.seo_keywords.map(keyword => 
+                    `<span class="seo-keyword" onclick="copyToClipboard(this)">${keyword}</span>`
+                ).join('')}
+            </div>
+        </div>
+    `;
+}
+
+// Add history toggle
+let showingHistory = false;
+
+function toggleHistory() {
+    const previewContainer = document.getElementById('previewContainer');
+    showingHistory = !showingHistory;
+    
+    if (showingHistory) {
+        const history = imageCache.getHistory();
+        previewContainer.innerHTML = '';
+        
+        history.forEach(result => {
+            const card = document.createElement('div');
+            card.className = 'image-card';
+            
+            const cardContent = document.createElement('div');
+            cardContent.className = 'card-content';
+            
+            updateCardContent(cardContent, result);
+            card.appendChild(cardContent);
+            previewContainer.appendChild(card);
+        });
+    } else {
+        previewContainer.innerHTML = '';
+    }
+}
+
+// Add this to your existing DOMContentLoaded listener
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Script loaded successfully');
+    
+    // Check if elements exist
+    const imageInput = document.getElementById('imageInput');
+    const previewContainer = document.getElementById('previewContainer');
+    
+    if (!imageInput) console.error('Image input element not found');
+    if (!previewContainer) console.error('Preview container not found');
+    
+    // Add history button
+    const uploadSection = document.querySelector('.upload-section');
+    const historyBtn = document.createElement('button');
+    historyBtn.className = 'history-btn';
+    historyBtn.innerHTML = '<i class="fas fa-history"></i> History';
+    historyBtn.onclick = toggleHistory;
+    uploadSection.appendChild(historyBtn);
+});
 
 async function fileToBase64(file) {
     return new Promise((resolve, reject) => {
@@ -461,16 +573,4 @@ document.getElementById('imageInput').addEventListener('change', function(e) {
     } catch (error) {
         console.error('Error in file input handler:', error);
     }
-});
-
-// Add this to check if the script loaded properly
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Script loaded successfully');
-    
-    // Check if elements exist
-    const imageInput = document.getElementById('imageInput');
-    const previewContainer = document.getElementById('previewContainer');
-    
-    if (!imageInput) console.error('Image input element not found');
-    if (!previewContainer) console.error('Preview container not found');
 }); 
