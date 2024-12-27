@@ -1,22 +1,22 @@
-let visionModel = null;
-
-// Replace with your Groq API key
+// Keep your API key and URL
 const GROQ_API_KEY = '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';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-
-// First, add the Groq SDK script to your HTML
-// <script src="https://unpkg.com/groq-sdk"></script>
-
-const groq = new Groq({
-    apiKey: GROQ_API_KEY
-});
 
 async function processImages() {
     const imageInput = document.getElementById('imageInput');
     const previewContainer = document.getElementById('previewContainer');
+    
+    // Clear previous results
     previewContainer.innerHTML = '';
-
+    
     const files = Array.from(imageInput.files);
+    
+    if (files.length === 0) {
+        console.error('No files selected');
+        return;
+    }
+
+    console.log(`Processing ${files.length} images...`); // Debug log
 
     for (const file of files) {
         const card = document.createElement('div');
@@ -27,12 +27,16 @@ async function processImages() {
         const imageUrl = URL.createObjectURL(file);
         img.src = imageUrl;
 
+        const cardContent = document.createElement('div');
+        cardContent.className = 'card-content';
+
         const loading = document.createElement('div');
         loading.className = 'loading';
-        loading.textContent = 'Analyzing image...';
+        loading.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing image...';
 
+        cardContent.appendChild(loading);
         card.appendChild(img);
-        card.appendChild(loading);
+        card.appendChild(cardContent);
         previewContainer.appendChild(card);
 
         try {
@@ -49,26 +53,45 @@ async function processImages() {
             const analysisContent = await analyzeImageWithGroq(compressedBase64);
             const results = JSON.parse(analysisContent);
 
-            loading.innerHTML = `
-                <h3>${results.title}</h3>
-                <p><strong>Description:</strong> ${results.description}</p>
+            cardContent.innerHTML = `
+                <h3 class="card-title">${results.title}</h3>
+                <p class="description">${results.description}</p>
+                
                 <div class="tags-section">
-                    <strong>Tags:</strong><br>
-                    ${results.tags.map(tag => 
-                        `<span class="tag">${typeof tag === 'string' ? tag : tag.name}</span>`
-                    ).join(' ')}
+                    <div class="section-title">
+                        Tags
+                        <button class="copy-btn" onclick="copyToClipboard(this, 'tags')">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <div class="tags-container">
+                        ${results.tags.map(tag => 
+                            `<span class="tag" onclick="copyToClipboard(this)">${typeof tag === 'string' ? tag : tag.name}</span>`
+                        ).join(' ')}
+                    </div>
                 </div>
+
                 <div class="seo-section">
-                    <strong>SEO Keywords:</strong><br>
-                    ${results.seo_keywords.map(keyword => 
-                        `<span class="seo-keyword">${keyword}</span>`
-                    ).join(' ')}
+                    <div class="section-title">
+                        SEO Keywords
+                        <button class="copy-btn" onclick="copyToClipboard(this, 'seo')">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <div class="seo-container">
+                        ${results.seo_keywords.map(keyword => 
+                            `<span class="seo-keyword" onclick="copyToClipboard(this)">${keyword}</span>`
+                        ).join(' ')}
+                    </div>
                 </div>
             `;
         } catch (error) {
-            loading.innerHTML = `
-                <p class="error">Error analyzing image: ${error.message}</p>
-                <p>Please try another image or refresh the page.</p>
+            cardContent.innerHTML = `
+                <div class="error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    Error analyzing image: ${error.message}
+                    <p>Please try another image or refresh the page.</p>
+                </div>
             `;
         } finally {
             URL.revokeObjectURL(imageUrl);
@@ -366,4 +389,62 @@ async function progressiveCompress(base64Data, maxSizeKB = 1000) {
     }
 
     return compressed;
-} 
+}
+
+// Add copy functionality
+function copyToClipboard(element, type) {
+    let textToCopy;
+    
+    if (type === 'tags') {
+        textToCopy = Array.from(element.parentElement.nextElementSibling.getElementsByClassName('tag'))
+            .map(tag => tag.textContent)
+            .join(', ');
+    } else if (type === 'seo') {
+        textToCopy = Array.from(element.parentElement.nextElementSibling.getElementsByClassName('seo-keyword'))
+            .map(keyword => keyword.textContent)
+            .join(', ');
+    } else {
+        textToCopy = element.textContent;
+    }
+
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        const originalText = element.innerHTML;
+        element.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(() => {
+            element.innerHTML = originalText;
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy text: ', err);
+    });
+}
+
+// Update the file input to show selected files
+document.getElementById('imageInput').addEventListener('change', function(e) {
+    try {
+        const label = document.querySelector('.upload-btn');
+        const fileCount = e.target.files.length;
+        
+        if (fileCount > 0) {
+            console.log(`Selected ${fileCount} files`); // Debug log
+            label.innerHTML = `<i class="fas fa-check"></i> ${fileCount} ${fileCount === 1 ? 'image' : 'images'} selected`;
+            processImages();
+        } else {
+            console.log('No files selected'); // Debug log
+            label.innerHTML = `<i class="fas fa-upload"></i> Choose Images`;
+        }
+    } catch (error) {
+        console.error('Error in file input handler:', error);
+    }
+});
+
+// Add this to check if the script loaded properly
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Script loaded successfully');
+    
+    // Check if elements exist
+    const imageInput = document.getElementById('imageInput');
+    const previewContainer = document.getElementById('previewContainer');
+    
+    if (!imageInput) console.error('Image input element not found');
+    if (!previewContainer) console.error('Preview container not found');
+}); 
