@@ -38,10 +38,11 @@ class ImageCache {
         return this.cache[hash];
     }
 
-    async set(imageData, results) {
+    async set(imageData, results, originalImageData) {
         const hash = await this.getImageHash(imageData);
         this.cache[hash] = {
             ...results,
+            imageData: originalImageData,
             timestamp: Date.now()
         };
         this.saveToLocalStorage();
@@ -66,33 +67,28 @@ async function processImages() {
         return;
     }
 
-    // Only clear container if not showing history
-    if (!showingHistory) {
-        previewContainer.innerHTML = '';
-    }
+    // Clear container and prepare for new images
+    previewContainer.innerHTML = '';
 
     console.log(`Processing ${files.length} images...`);
 
     for (const file of files) {
         const card = document.createElement('div');
         card.className = 'image-card';
-
+        
+        // Create image element
         const img = document.createElement('img');
         img.className = 'preview-image';
         const imageUrl = URL.createObjectURL(file);
         img.src = imageUrl;
+        card.appendChild(img); // Add image to card first
 
         const cardContent = document.createElement('div');
         cardContent.className = 'card-content';
-
-        const loading = document.createElement('div');
-        loading.className = 'loading';
-        loading.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing image...';
-
-        cardContent.appendChild(loading);
-        card.appendChild(img);
         card.appendChild(cardContent);
-        previewContainer.appendChild(card);
+
+        // Insert at the beginning
+        previewContainer.insertBefore(card, previewContainer.firstChild);
 
         try {
             await new Promise((resolve) => {
@@ -111,16 +107,16 @@ async function processImages() {
             if (!results) {
                 const analysisContent = await analyzeImageWithGroq(compressedBase64);
                 results = JSON.parse(analysisContent);
-                await imageCache.set(compressedBase64, results);
+                await imageCache.set(compressedBase64, results, compressedBase64);
             }
 
+            // Update card content WITHOUT adding another image
             updateCardContent(cardContent, results);
         } catch (error) {
             cardContent.innerHTML = `
                 <div class="error">
                     <i class="fas fa-exclamation-circle"></i>
                     Error analyzing image: ${error.message}
-                    <p>Please try another image or refresh the page.</p>
                 </div>
             `;
         } finally {
@@ -199,9 +195,11 @@ function toggleHistory() {
             const cardContent = document.createElement('div');
             cardContent.className = 'card-content';
             
-            updateCardContent(cardContent, result);
+            // Pass the stored image data to updateCardContent
+            updateCardContent(cardContent, result, result.imageData);
             card.appendChild(cardContent);
-            previewContainer.appendChild(card);
+            // Insert at the beginning to show newest first
+            previewContainer.insertBefore(card, previewContainer.firstChild);
         });
     } else {
         previewContainer.innerHTML = '';

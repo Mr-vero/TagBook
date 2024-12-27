@@ -105,6 +105,8 @@
         }
 
         .image-card {
+            display: flex;
+            flex-direction: column;
             background: var(--card-color);
             border-radius: var(--border-radius);
             overflow: hidden;
@@ -123,11 +125,13 @@
             width: 100%;
             height: 240px;
             object-fit: cover;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
             border-bottom: 1px solid rgba(0,0,0,0.05);
         }
 
         .card-content {
-            padding: calc(var(--spacing) * 1.2);
+            padding: var(--spacing);
+            flex: 1;
         }
 
         .content-section {
