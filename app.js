@@ -81,10 +81,19 @@ async function processImages() {
         img.className = 'preview-image';
         const imageUrl = URL.createObjectURL(file);
         img.src = imageUrl;
-        card.appendChild(img); // Add image to card first
+        card.appendChild(img);
 
         const cardContent = document.createElement('div');
         cardContent.className = 'card-content';
+        
+        // Add loading animation
+        cardContent.innerHTML = `
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Analyzing image with AI...</span>
+            </div>
+        `;
+        
         card.appendChild(cardContent);
 
         // Insert at the beginning
@@ -110,7 +119,7 @@ async function processImages() {
                 await imageCache.set(compressedBase64, results, compressedBase64);
             }
 
-            // Update card content WITHOUT adding another image
+            // Update card content
             updateCardContent(cardContent, results);
         } catch (error) {
             cardContent.innerHTML = `
