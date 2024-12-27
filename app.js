@@ -1,5 +1,5 @@
 // Keep your API key and URL
-const GROQ_API_KEY = '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';
+const GROQ_API_KEY = 'your_groq_api_key_here';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // Add cache handling
